@@ -83,6 +83,5 @@ jobs:
           for file in ${ADDED_FILES}; do
             echo "$file was added"
           done
-
           git log --pretty=oneline`
           exit 1
