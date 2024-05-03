@@ -29,6 +29,7 @@ jobs:
           all_modified_files: ${{ steps.changed-files.outputs.all_modified_files }}
           modified_keys: ${{ steps.changed-files.outputs.modified_keys }}
           unmerged_files: ${{ steps.changed-files.outcome.unmerged_files }}
+          unknown_files: ${{ steps.changed-files.outcome.unknown_files }}
         run: |
           echo "all_changed_and_modified_files (ACMRDTUX)"
           for file in ${all_changed_and_modified_files}; do
@@ -48,6 +49,12 @@ jobs:
           echo "-----------------------------------"
           echo "unmerged_files"
           for file in ${unmerged_files}; do
+            echo "$file"
+          done
+          echo "-----------------------------------"
+
+          echo "unknown_files (X)"
+          for file in ${unknown_files}; do
             echo "$file"
           done
           echo "-----------------------------------"
@@ -76,6 +83,6 @@ jobs:
           for file in ${ADDED_FILES}; do
             echo "$file was added"
           done
-          
-          git log --pretty=oneline
+
+          git log --pretty=oneline`
           exit 1
