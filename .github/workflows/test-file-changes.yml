@@ -1,0 +1,81 @@
+name: 'Jest'
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+      # - '*'         # matches every branch that doesn't contain a '/'
+      # - '*/*'       # matches every branch containing a single '/'
+      # - '**'        # matches every branch
+      # - '!master'   # excludes master
+
+jobs:
+  check-file-changes-between-pr-target-branch:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        # To compare changes between the current commit and the last pushed remote commit set `since_last_remote_commit: true`. e.g
+
+      - name: List all added files
+        env:
+          all_changed_and_modified_files: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}
+          all_modified_files: ${{ steps.changed-files.outputs.all_modified_files }}
+          modified_keys: ${{ steps.changed-files.outputs.modified_keys }}
+          unmerged_files: ${{ steps.changed-files.outcome.unmerged_files }}
+        run: |
+          echo "all_changed_and_modified_files (ACMRDTUX)"
+          for file in ${all_changed_and_modified_files}; do
+            echo "$file"
+          done
+          echo "-----------------------------------"
+
+          echo "all_modified_files (ACMRD)"
+          for file in ${all_modified_files}; do
+            echo "$file"
+          done
+          echo "-----------------------------------"
+          echo "modified_keys (ACMRD)"
+          for file in ${modified_keys}; do
+            echo "$file"
+          done
+          echo "-----------------------------------"
+          echo "unmerged_files"
+          for file in ${unmerged_files}; do
+            echo "$file"
+          done
+          echo "-----------------------------------"
+
+  check-file-changes-between-current-branch-commit:
+    needs: check-file-changes-between-pr-target-branch
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        # with:
+        #   fetch-depth: 2 # 0 : 모든 히스토리, 1: 마지막 commit, 2: 마지막 2개 commit ...
+        # Pr을 연상태에서 push를 하면 merge commit이 마지막 commit, push한 commit아 마지막에서 2번째로 잡힌다.
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          since_last_remote_commit: true
+
+      - name: List all added files
+        env:
+          ADDED_FILES: ${{ steps.changed-files.outputs.modified_files }}
+        run: |
+          for file in ${ADDED_FILES}; do
+            echo "$file was added"
+          done
+          
+          git log --pretty=oneline
+          exit 1
