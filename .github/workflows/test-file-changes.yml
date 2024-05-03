@@ -29,6 +29,7 @@ jobs:
           all_modified_files: ${{ steps.changed-files.outputs.all_modified_files }}
           modified_keys: ${{ steps.changed-files.outputs.modified_keys }}
           unmerged_files: ${{ steps.changed-files.outcome.unmerged_files }}
+          unknown_files: ${{ steps.changed-files.outcome.unknown_files }}
         run: |
           echo "all_changed_and_modified_files (ACMRDTUX)"
           for file in ${all_changed_and_modified_files}; do
@@ -52,8 +53,14 @@ jobs:
           done
           echo "-----------------------------------"
 
+          echo "unknown_files (X)"
+          for file in ${unknown_files}; do
+            echo "$file"
+          done
+          echo "-----------------------------------"
+
   check-file-changes-between-current-branch-commit:
-    needs: check-file-changes-between-pr-target-branch
+    # needs: check-file-changes-between-pr-target-branch
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
@@ -71,11 +78,10 @@ jobs:
 
       - name: List all added files
         env:
-          ADDED_FILES: ${{ steps.changed-files.outputs.modified_files }}
+          ADDED_FILES: ${{ steps.changed-files.outputs.all_modified_files }}
         run: |
           for file in ${ADDED_FILES}; do
             echo "$file was added"
           done
-          
-          git log --pretty=oneline
+          git log --pretty=oneline`
           exit 1
