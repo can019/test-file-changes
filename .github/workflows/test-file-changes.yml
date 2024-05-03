@@ -18,6 +18,10 @@ jobs:
     permissions:
       pull-requests: read
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v44
@@ -83,5 +87,4 @@ jobs:
           for file in ${ADDED_FILES}; do
             echo "$file was added"
           done
-          git log --pretty=oneline`
-          exit 1
+          git log --pretty=oneline
