@@ -46,7 +46,7 @@ jobs:
       - name: Set run test flags
         id: check-modified
         env:
-          LIBS_ANY_MODIFED: 'true'
+          LIBS_ANY_MODIFED: ${{ steps.changed-files.outputs.libs_any_modified }}
           LIBS_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.libs_any_modified_files }}
           API_ANY_MODIFIED: ${{ steps.changed-files.outputs.api_any_modified }}
           API_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.api_any_modified_files }}
