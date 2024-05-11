@@ -113,7 +113,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions: write-all
-    if: ${{ always() && needs.check-file-changes.outputs.api-change == 'true' }}
+    if: ${{ needs.check-file-changes.outputs.api-change == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
