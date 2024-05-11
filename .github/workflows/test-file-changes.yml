@@ -121,7 +121,7 @@ jobs:
 
   unit-api-local:
     needs: [check-file-changes-between-pr-target-branch, check-file-changes-between-current-branch-commit]
-    if: ${{ always() && ((needs.check-file-changes-between-pr-target-branchresult == 'skipped' && needs.check-file-changes-between-current-branch-commit.outputs.api-change == 'true')|| (needs.check-file-changes-between-current-branch-commit.result == 'failure' && needs.check-file-changes-between-pr-target-branch.outputs.api-change == 'true'))}}
+    if: ${{ always() }}
 
     # if: ${{ needs.check-file-changes-between-current-branch-commit.outputs.api-change == 'true' || needs.check-file-changes-between-pr-target-branch.outputs.api-change == 'true'}}
     timeout-minutes: 10
