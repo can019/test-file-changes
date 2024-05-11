@@ -71,17 +71,20 @@ jobs:
           ADMIN_ANY_MODIFIED: ${{ !steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-commit.outputs.admin_any_modified || steps.changed-files-between-pr-branch.outputs.admin_any_modified }}
           ADMIN_ANY_MODIFIED_FILES: ${{ !steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-commit.outputs.admin_any_modified_files || steps.changed-files-between-pr-branch.outputs.admin_any_modified_files  }}
         run: |
-          echo ${LBS_ANY_MODIFED}
+          echo ${LIBS_ANY_MODIFED}
           if [ $LIBS_ANY_MODIFED  == "true" ]; then
             echo 'api-change=true' >> $GITHUB_OUTPUT
             echo 'admin-chagne=true' >> $GITHUB_OUTPUT
             echo "List all the files that have changed: $LIBS_ANY_MODIFIED_FILES"
-          elif [ $API_ANY_MODIFIED == "true" ]; then
-            echo 'api-change=true' >> $GITHUB_OUTPUT
-            echo "List all the files that have changed: $API_ANY_MODIFIED_FILES"
-          elif [ $ADMIN_ANY_MODIFIED == "true" ]; then
-            echo 'admin-change=true' >> $GITHUB_OUTPUT
-            echo "List all the files that have changed: $ADMIN_ANY_MODIFIED_FILES"
+          else 
+            if [ $API_ANY_MODIFIED == "true" ]; then
+              echo 'api-change=true' >> $GITHUB_OUTPUT
+              echo "List all the files that have changed: $API_ANY_MODIFIED_FILES"
+            fi
+            if [ $ADMIN_ANY_MODIFIED == "true" ]; then
+              echo 'admin-change=true' >> $GITHUB_OUTPUT
+              echo "List all the files that have changed: $ADMIN_ANY_MODIFIED_FILES"
+            fi
           else
             echo "Nothing"
           fi
