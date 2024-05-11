@@ -89,3 +89,20 @@ jobs:
           done
           git log --pretty=oneline
           exit 1
+  
+  failure-test1:
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    steps:
+      - name : test
+        run: |
+          echo "test1"
+
+  failure-test2:
+    runs-on: ubuntu-latest
+    if: ${{ (needs.check-file-changes-between-current-branch-commit.result == 'failure') }}
+    steps:
+      - name : test
+        run: |
+          echo "test2"
+
