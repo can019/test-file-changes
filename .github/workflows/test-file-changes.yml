@@ -87,8 +87,7 @@ jobs:
           fi
   unit-api-local:
     needs: [check-file-changes]
-    if: |
-      ${{ needs.check-file-changes.outputs.check-modified.api == 'true' }}
+    if: ${{ always() && needs.check-file-changes.outputs.check-modified.api == 'true' }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
@@ -110,8 +109,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions: write-all
-    if: |
-      ${{ needs.check-file-changes.outputs.check-modified.api == 'true' }}
+    if: ${{  always() && needs.check-file-changes.outputs.check-modified.api == 'true' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
