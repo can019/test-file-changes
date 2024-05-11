@@ -31,7 +31,6 @@ jobs:
       - name: Get changed files
         id: changed-files-between-commit
         uses: tj-actions/changed-files@v44
-        continue-on-error: true
         with:
           since_last_remote_commit: true
           files_yaml: |
