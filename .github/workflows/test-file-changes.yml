@@ -29,7 +29,7 @@ jobs:
         #   fetch-depth: 2 # 0 : 모든 히스토리, 1: 마지막 commit, 2: 마지막 2개 commit ...
         # Pr을 연상태에서 push를 하면 merge commit이 마지막 commit, push한 commit아 마지막에서 2번째로 잡힌다.
       - name: Get changed files
-        id: changed-files
+        id: changed-files-between-commit
         uses: tj-actions/changed-files@v44
         with:
           since_last_remote_commit: true
@@ -42,50 +42,16 @@ jobs:
 
             libs:
               - libs/**
+      - name: exit test
+        run: exit 1
 
-      - name: Set run test flags
-        id: check-modified
-        env:
-          LIBS_ANY_MODIFED: 'true'
-          LIBS_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.libs_any_modified_files }}
-          API_ANY_MODIFIED: ${{ steps.changed-files.outputs.api_any_modified }}
-          API_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.api_any_modified_files }}
-          ADMIN_ANY_MODIFIED: ${{ steps.changed-files.outputs.admin_any_modified }}
-          ADMIN_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.admin_any_modified_files }}
-        run: |
-          echo ${IBS_ANY_MODIFED}
-          if [ $LIBS_ANY_MODIFED  == "true" ]; then
-            echo 'api-change=true' >> $GITHUB_OUTPUT
-            echo 'admin-chagne=true' >> $GITHUB_OUTPUT
-            echo "List all the files that have changed: $LIBS_ANY_MODIFIED_FILES"
-          elif [ $API_ANY_MODIFIED == "true" ]; then
-            echo  echo 'api-change=true' >> $GITHUB_OUTPUT
-            echo "List all the files that have changed: $API_ANY_MODIFIED_FILES"
-          elif [ $ADMIN_ANY_MODIFIED == "true" ]; then
-            echo 'admin-change=true' >> $GITHUB_OUTPUT
-            echo "List all the files that have changed: $ADMIN_ANY_MODIFIED_FILES"
-          else
-            echo "Nothing"
-          fi
-          exit 1
-          
-
-  check-file-changes-between-pr-target-branch:
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    needs: [check-file-changes-between-current-branch-commit]
-    if: ${{ always() && (needs.check-file-changes-between-current-branch-commit.result == 'failure' )}}
-    permissions:
-      pull-requests: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Get changed files
-        id: changed-files
+    
+      - name: Get changed file between pr branch
+        if: failure()
+        id: changed-files-between-pr-branch
         uses: tj-actions/changed-files@v44
         with:
+          since_last_remote_commit: false
           files_yaml: |
             admin:
               - apps/admin/**
@@ -95,16 +61,17 @@ jobs:
 
             libs:
               - libs/**
-
+          run: echo 'flag=true' >> $GITHUB_OUTPUT
+  
       - name: Set run test flags
         id: check-modified
         env:
           LIBS_ANY_MODIFED: 'true'
-          LIBS_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.libs_any_modified_files }}
-          API_ANY_MODIFIED: ${{ steps.changed-files.outputs.api_any_modified }}
-          API_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.api_any_modified_files }}
-          ADMIN_ANY_MODIFIED: ${{ steps.changed-files.outputs.admin_any_modified }}
-          ADMIN_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.admin_any_modified_files }}
+          LIBS_ANY_MODIFIED_FILES: ${{ steps.changed-files-between-pr-branch.outputs.flag =='true'&& steps.changed-files-between-pr-branch.outputs.libs_any_modified_files || steps.changed-files-yaml.outputs.libs_any_modified_files }}
+          API_ANY_MODIFIED: ${{ steps.changed-files-between-pr-branch.outputs.flag =='true'&& steps.changed-files-between-pr-branch.outputs.api_any_modified || steps.changed-files-yaml.outputs.api_any_modified }}
+          API_ANY_MODIFIED_FILES: ${{ steps.changed-files-between-pr-branch.outputs.flag =='true'&& steps.changed-files-between-pr-branch.outputs.api_any_modified_files || steps.changed-files-yaml.outputs.api_any_modified_files }}
+          ADMIN_ANY_MODIFIED: ${{ steps.changed-files-between-pr-branch.outputs.flag =='true'&& steps.changed-files-between-pr-branch.outputs.admin_any_modified || steps.changed-files-yaml.outputs.admin_any_modified }}
+          ADMIN_ANY_MODIFIED_FILES: ${{ steps.changed-files-between-pr-branch.outputs.flag =='true'&& steps.changed-files-between-pr-branch.outputs.admin_any_modified_files || steps.changed-files-yaml.outputs.admin_any_modified_files }}
         run: |
           echo ${IBS_ANY_MODIFED}
           if [ $LIBS_ANY_MODIFED  == "true" ]; then
@@ -112,7 +79,7 @@ jobs:
             echo 'admin-chagne=true' >> $GITHUB_OUTPUT
             echo "List all the files that have changed: $LIBS_ANY_MODIFIED_FILES"
           elif [ $API_ANY_MODIFIED == "true" ]; then
-            echo  echo 'api-change=true' >> $GITHUB_OUTPUT
+            echo 'api-change=true' >> $GITHUB_OUTPUT
             echo "List all the files that have changed: $API_ANY_MODIFIED_FILES"
           elif [ $ADMIN_ANY_MODIFIED == "true" ]; then
             echo 'admin-change=true' >> $GITHUB_OUTPUT
@@ -121,55 +88,34 @@ jobs:
             echo "Nothing"
           fi
 
-  unit-api-local:
-    needs: [check-file-changes-between-pr-target-branch, check-file-changes-between-current-branch-commit]
-    if: ${{ always() && ((needs.check-file-changes-between-pr-target-branch.result == 'skipped' && needs.check-file-changes-between-current-branch-commit.outputs.api-change == 'true') || (needs.check-file-changes-between-current-branch-commit.result == 'failure' && needs.check-file-changes-between-pr-target-branch.outputs.api-change == 'true') )}}
-
-    # if: ${{ needs.check-file-changes-between-current-branch-commit.outputs.api-change == 'true' || needs.check-file-changes-between-pr-target-branch.outputs.api-change == 'true'}}
+  test1:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    permissions: write-all
-    # strategy:
-    #   matrix:
-    #     node: [ 14, 16, 18 ]
-
-    # name: Jest in Node ${{ matrix.node }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      
-      - name : test
-        run: |
-         echo ${{needs.check-file-changes-between-current-branch-commit.outputs.api-change}}
-         echo ${{needs.check-file-changes-between-pr-target-branch.outputs.check-modified.api-chagne}}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18' # ${{ matrix.node }}
-
-  e2e-api-local:
     needs: [check-file-changes-between-current-branch-commit]
+    if: needs.check-file-changes-between-current-branch-commit.outputs.check-modified.api == 'true'
+    permissions:
+      pull-requests: read
+    outputs:
+      api-change: ${{ steps.check-modified.outputs.api-change }}
+      admin-change: ${{ steps.check-modified.outputs.admin-change }}
+    steps:
+      - uses: actions/checkout@v4
+    
+      - name: test1
+        run: echo "test1"
+
+  test2:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    permissions: write-all
-    if: ${{ always() && ((needs.check-file-changes-between-pr-target-branch.result == 'skipped' && needs.check-file-changes-between-current-branch-commit.outputs.api-change == 'true') || (needs.check-file-changes-between-current-branch-commit.result == 'failure' && needs.check-file-changes-between-pr-target-branch.outputs.api-change == 'true'))}}
+    needs: [check-file-changes-between-current-branch-commit]
+    if: needs.check-file-changes-between-current-branch-commit.outputs.check-modified.api == 'true'
+    permissions:
+      pull-requests: read
+    outputs:
+      api-change: ${{ steps.check-modified.outputs.api-change }}
+      admin-change: ${{ steps.check-modified.outputs.admin-change }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name : test
-        run: |
-         echo ${{needs.check-file-changes-between-current-branch-commit.outputs.api-change}}
-         echo ${{needs.check-file-changes-between-pr-target-branch.outputs.check-modified.api-chagne}}
-      
+      - uses: actions/checkout@v4
+    
       - name: test2
-        if: ${{needs.check-file-changes-between-current-branch-commit.outputs.api-change == 'true'}}
-        run: echo "!@!!!!!"
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18' # ${{ matrix.node }}
-
-  
+        run: echo "test2"
