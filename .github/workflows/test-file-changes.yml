@@ -47,13 +47,14 @@ jobs:
       - name: Set run test flags
         id: check-modified
         env:
-          LIBS_ANY_MODIFED: "true"
+          LIBS_ANY_MODIFED: ${{ steps.changed-files.outputs.libs_any_modified }}
           LIBS_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.libs_any_modified_files }}
           API_ANY_MODIFIED: ${{ steps.changed-files.outputs.api_any_modified }}
           API_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.api_any_modified_files }}
           ADMIN_ANY_MODIFIED: ${{ steps.changed-files.outputs.admin_any_modified }}
           ADMIN_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.admin_any_modified_files }}
         run: |
+          echo ${IBS_ANY_MODIFED}
           if [ $LIBS_ANY_MODIFED  == "true" ]; then
             echo 'api=true' >> $GITHUB_OUTPUT
             echo 'admin=true' >> $GITHUB_OUTPUT
@@ -97,7 +98,7 @@ jobs:
       - name: Set run test flags
         id: check-modified
         env:
-          LIBS_ANY_MODIFED: true
+          LIBS_ANY_MODIFED: ${{ steps.changed-files.outputs.libs_any_modified }}
           LIBS_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.libs_any_modified_files }}
           API_ANY_MODIFIED: ${{ steps.changed-files.outputs.api_any_modified }}
           API_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.api_any_modified_files }}
@@ -121,7 +122,7 @@ jobs:
   unit-api-local:
     needs: [check-file-changes-between-pr-target-branch, check-file-changes-between-current-branch-commit]
     if: |
-      ${{ always() && (needs.check-file-changes-between-current-branch-commit.outputs.check-modified.api == 'true' || needs.check-file-changes-between-pr-target-branch.outputs.check-modified.api == 'true')}}
+      ${{(needs.check-file-changes-between-current-branch-commit.outputs.check-modified.api == 'true' || needs.check-file-changes-between-pr-target-branch.outputs.check-modified.api == 'true')}}
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
