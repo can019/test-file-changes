@@ -79,7 +79,7 @@ jobs:
         uses: tj-actions/changed-files@v44
         with:
           since_last_remote_commit: true
-
+  
       - name: List all added files
         env:
           ADDED_FILES: ${{ steps.changed-files.outputs.all_modified_files }}
@@ -88,3 +88,4 @@ jobs:
             echo "$file was added"
           done
           git log --pretty=oneline
+          exit 1
