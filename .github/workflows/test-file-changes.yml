@@ -88,7 +88,7 @@ jobs:
             echo "$file was added"
           done
           git log --pretty=oneline
-          exit 1
+
   
   failure-test1:
     runs-on: ubuntu-latest
