@@ -21,8 +21,8 @@ jobs:
     permissions:
       pull-requests: read
     outputs:
-      api-change: ${{ steps.api-change.outputs.api-change }}
-      admin-change: ${{ steps.admin-change.outputs.admin-change }}
+      api-change: ${{ steps.check-modified.outputs.api-change }}
+      admin-change: ${{ steps.check-modified.outputs.admin-change }}
     steps:
       - uses: actions/checkout@v4
         # with:
