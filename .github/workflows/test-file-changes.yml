@@ -145,7 +145,7 @@ jobs:
           node-version: '18' # ${{ matrix.node }}
 
   e2e-api-local:
-    needs: [check-file-changes-between-pr-target-branch, check-file-changes-between-current-branch-commit]
+    needs: [check-file-changes-between-current-branch-commit]
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions: write-all
