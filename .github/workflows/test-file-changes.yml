@@ -1,7 +1,13 @@
 name: 'Jest'
 on:
+  push:
+    branches:
+      - 'develop'
   pull_request:
     branches:
+      - 'develop'
+      - 'migration'
+      - 'main'
       - '**'
       # - '*'         # matches every branch that doesn't contain a '/'
       # - '*/*'       # matches every branch containing a single '/'
@@ -9,63 +15,15 @@ on:
       # - '!master'   # excludes master
 
 jobs:
-  check-file-changes-between-pr-target-branch:
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    permissions:
-      pull-requests: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v44
-        # To compare changes between the current commit and the last pushed remote commit set `since_last_remote_commit: true`. e.g
-
-      - name: List all added files
-        env:
-          all_changed_and_modified_files: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}
-          all_modified_files: ${{ steps.changed-files.outputs.all_modified_files }}
-          modified_keys: ${{ steps.changed-files.outputs.modified_keys }}
-          unmerged_files: ${{ steps.changed-files.outcome.unmerged_files }}
-          unknown_files: ${{ steps.changed-files.outcome.unknown_files }}
-        run: |
-          echo "all_changed_and_modified_files (ACMRDTUX)"
-          for file in ${all_changed_and_modified_files}; do
-            echo "$file"
-          done
-          echo "-----------------------------------"
-
-          echo "all_modified_files (ACMRD)"
-          for file in ${all_modified_files}; do
-            echo "$file"
-          done
-          echo "-----------------------------------"
-          echo "modified_keys (ACMRD)"
-          for file in ${modified_keys}; do
-            echo "$file"
-          done
-          echo "-----------------------------------"
-          echo "unmerged_files"
-          for file in ${unmerged_files}; do
-            echo "$file"
-          done
-          echo "-----------------------------------"
-
-          echo "unknown_files (X)"
-          for file in ${unknown_files}; do
-            echo "$file"
-          done
-          echo "-----------------------------------"
-
   check-file-changes-between-current-branch-commit:
-    # needs: check-file-changes-between-pr-target-branch
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
+    outputs:
+      api-change: ${{ steps.api-change.outputs.apk-change }}
+      admin-change: ${{ steps.admin-change.outputs.change }}
+      libs-change: ${{ steps.libs-change.outputs.change }}
     steps:
       - uses: actions/checkout@v4
         # with:
@@ -83,39 +41,119 @@ jobs:
             api:
               - apps/api/**
 
-      - name: List all added files
+            libs:
+              - libs/**
+
+      - name: Set run test flags
+        id: check-modified
         env:
-          ADDED_FILES: ${{ steps.changed-files.outputs.all_modified_files }}
+          LIBS_ANY_MODIFED: ${{ steps.changed-files.outputs.libs_any_modified }}
+          LIBS_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.libs_any_modified_files }}
+          API_ANY_MODIFIED: ${{ steps.changed-files.outputs.api_any_modified }}
+          API_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.api_any_modified_files }}
+          ADMIN_ANY_MODIFIED: ${{ steps.changed-files.outputs.admin_any_modified }}
+          ADMIN_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.admin_any_modified_files }}
         run: |
-          for file in ${ADDED_FILES}; do
-            echo "$file was added"
-          done
-          git log --pretty=oneline
+          if [ $LIBS_ANY_MODIFED  == "true" ]; then
+            echo 'api=true' >> $GITHUB_OUTPUT
+            echo 'admin=true' >> $GITHUB_OUTPUT
+            echo "List all the files that have changed: $LIBS_ANY_MODIFIED_FILES"
+          elif [ $API_ANY_MODIFIED == "true" ]; then
+            echo  echo 'api=true' >> $GITHUB_OUTPUT
+            echo "List all the files that have changed: $API_ANY_MODIFIED_FILES"
+          elif [ $ADMIN_ANY_MODIFIED == "true" ]; then
+            echo 'admin=true' >> $GITHUB_OUTPUT
+            echo "List all the files that have changed: $ADMIN_ANY_MODIFIED_FILES"
+          else
+            echo "Nothing"
+          fi
 
-  failure-test2:
+  check-file-changes-between-pr-target-branch:
+    timeout-minutes: 10
     runs-on: ubuntu-latest
     needs: [check-file-changes-between-current-branch-commit]
-    if:  ${{ always() && (needs.check-file-changes-between-current-branch-commit.result == 'failure' )}}
+    if: ${{ always() && (needs.check-file-changes-between-current-branch-commit.result == 'failure' )}}
+    permissions:
+      pull-requests: read
     steps:
-      - name : test
-        run: |
-          echo "test2"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  skip-test1:
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+        with:
+          files_yaml: |
+            admin:
+              - apps/admin/**
+
+            api:
+              - apps/api/**
+
+            libs:
+              - libs/**
+
+      - name: Set run test flags
+        id: check-modified
+        env:
+          LIBS_ANY_MODIFED: true
+          LIBS_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.libs_any_modified_files }}
+          API_ANY_MODIFIED: ${{ steps.changed-files.outputs.api_any_modified }}
+          API_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.api_any_modified_files }}
+          ADMIN_ANY_MODIFIED: ${{ steps.changed-files.outputs.admin_any_modified }}
+          ADMIN_ANY_MODIFIED_FILES: ${{ steps.changed-files-yaml.outputs.admin_any_modified_files }}
+        run: |
+          if [ ${LIBS_ANY_MODIFED}  == "true" ]; then
+            echo 'api=true' >> $GITHUB_OUTPUT
+            echo 'admin=true' >> $GITHUB_OUTPUT
+            echo "List all the files that have changed: $LIBS_ANY_MODIFIED_FILES"
+          elif [ ${API_ANY_MODIFIED} == "true" ]; then
+            echo  echo 'api=true' >> $GITHUB_OUTPUT
+            echo "List all the files that have changed: $API_ANY_MODIFIED_FILES"
+          elif [ ${ADMIN_ANY_MODIFIED} == "true" ]; then
+            echo 'admin=true' >> $GITHUB_OUTPUT
+            echo "List all the files that have changed: $ADMIN_ANY_MODIFIED_FILES"
+          else
+            echo "Nothing"
+          fi
+
+  unit-api-local:
+    needs: [check-file-changes-between-pr-target-branch, check-file-changes-between-current-branch-commit]
+    if: |
+      ${{ always() && (needs.check-file-changes-between-current-branch-commit.outputs.check-modified.api == 'true' || needs.check-file-changes-between-pr-target-branch.outputs.check-modified.api == 'true')}}
+    timeout-minutes: 10
     runs-on: ubuntu-latest
-    needs: [check-file-changes-between-current-branch-commit]
-    if:  ${{ always() && (needs.check-file-changes-between-current-branch-commit.result == 'failure' )}}
+
+    permissions: write-all
+    # strategy:
+    #   matrix:
+    #     node: [ 14, 16, 18 ]
+
+    # name: Jest in Node ${{ matrix.node }}
     steps:
-      - name : test
-        run: |
-          echo "skip1"
+      - name: Checkout
+        uses: actions/checkout@v3
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # ${{ matrix.node }}
 
-  skip-test2:
+  e2e-api-local:
+    needs: [check-file-changes-between-pr-target-branch, check-file-changes-between-current-branch-commit]
+    timeout-minutes: 10
     runs-on: ubuntu-latest
-    needs: [skip-test1]
-    if:  ${{ always() && (needs.skip-test1.result == 'skipped' )}}
+    permissions: write-all
+    if: |
+      ${{ always() && (needs.check-file-changes-between-current-branch-commit.outputs.check-modified.api == 'true' || needs.check-file-changes-between-pr-target-branch.outputs.check-modified.api == 'true')}}
     steps:
-      - name : test
-        run: |
-          echo "test2"
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # ${{ matrix.node }}
+
+  
