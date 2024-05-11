@@ -67,6 +67,7 @@ jobs:
           else
             echo "Nothing"
           fi
+          exit -1
 
   check-file-changes-between-pr-target-branch:
     timeout-minutes: 10
@@ -149,8 +150,7 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-latest
     permissions: write-all
-    if: |
-      ${{ (needs.check-file-changes-between-current-branch-commit.outputs.api-change == 'true')}}
+    if: needs.check-file-changes-between-current-branch-commit.outputs.api-change == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
