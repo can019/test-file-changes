@@ -85,9 +85,13 @@ jobs:
           else
             echo "Nothing"
           fi
+      - name: Logging github vars
+        run: |
+          echo ${{ needs.check-file-changes.outputs.api-change }}
+          echo ${{ needs.check-file-changes.outputs.admin-change }}
   unit-api-local:
     needs: [check-file-changes]
-    if: ${{ always() && needs.check-file-changes.outputs.check-modified.api == 'true' }}
+    if: ${{ always() && needs.check-file-changes.outputs.api-change == 'true' }}
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
