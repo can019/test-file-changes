@@ -64,14 +64,14 @@ jobs:
       - name: Set run test flags
         id: check-modified
         env:
-          LIBS_ANY_MODIFED: ${{ steps.changed-files-between-pr-branch.outputs && steps.changed-files-between-pr-branch.outputs.libs_any_modified || steps.changed-files-yaml.outputs.libs_any_modified }}
-          LIBS_ANY_MODIFIED_FILES: ${{ steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-pr-branch.outputs.libs_any_modified_files || steps.changed-files-yaml.outputs.libs_any_modified_files }}
-          API_ANY_MODIFIED: ${{ steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-pr-branch.outputs.api_any_modified || steps.changed-files-yaml.outputs.api_any_modified }}
-          API_ANY_MODIFIED_FILES: ${{ steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-pr-branch.outputs.api_any_modified_files || steps.changed-files-yaml.outputs.api_any_modified_files }}
-          ADMIN_ANY_MODIFIED: ${{ steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-pr-branch.outputs.admin_any_modified || steps.changed-files-yaml.outputs.admin_any_modified }}
-          ADMIN_ANY_MODIFIED_FILES: ${{ steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-pr-branch.outputs.admin_any_modified_files || steps.changed-files-yaml.outputs.admin_any_modified_files }}
+          LIBS_ANY_MODIFED: ${{ !steps.changed-files-between-pr-branch.outputs && steps.changed-files-yaml.outputs.libs_any_modified || steps.changed-files-between-pr-branch.outputs.libs_any_modified }}
+          LIBS_ANY_MODIFIED_FILES: ${{ !steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-pr-branch.outputs.libs_any_modified_files || steps.changed-files-yaml.outputs.libs_any_modified_files }}
+          API_ANY_MODIFIED: ${{ !steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-pr-branch.outputs.api_any_modified || steps.changed-files-yaml.outputs.api_any_modified }}
+          API_ANY_MODIFIED_FILES: ${{ !steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-pr-branch.outputs.api_any_modified_files || steps.changed-files-yaml.outputs.api_any_modified_files }}
+          ADMIN_ANY_MODIFIED: ${{ !steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-pr-branch.outputs.admin_any_modified || steps.changed-files-yaml.outputs.admin_any_modified }}
+          ADMIN_ANY_MODIFIED_FILES: ${{ !steps.changed-files-between-pr-branch.outputs.flag && steps.changed-files-between-pr-branch.outputs.admin_any_modified_files || steps.changed-files-yaml.outputs.admin_any_modified_files }}
         run: |
-          echo ${IBS_ANY_MODIFED}
+          echo ${LBS_ANY_MODIFED}
           if [ $LIBS_ANY_MODIFED  == "true" ]; then
             echo 'api-change=true' >> $GITHUB_OUTPUT
             echo 'admin-chagne=true' >> $GITHUB_OUTPUT
