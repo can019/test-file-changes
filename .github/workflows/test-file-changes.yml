@@ -87,8 +87,10 @@ jobs:
           fi
       - name: Logging github vars
         run: |
-          echo ${{ needs.check-file-changes.outputs.api-change }}
-          echo ${{ needs.check-file-changes.outputs.admin-change }}
+          echo ${{ steps.check-file-changes.outputs.api-change }}
+          echo ${{ steps.check-file-changes.outputs.admin-change }}
+          echo ${{ steps.check-file-changes.result }}
+          echo ${{ steps.changed-files-between-pr-branch.result }}
   unit-api-local:
     needs: [check-file-changes]
     if: ${{ needs.check-file-changes.outputs.api-change == 'true' }}
