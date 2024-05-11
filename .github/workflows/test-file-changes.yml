@@ -43,8 +43,6 @@ jobs:
 
             libs:
               - libs/**
-      - name: exit test
-        run: exit 1
 
     
       - name: Get changed file between pr branch
