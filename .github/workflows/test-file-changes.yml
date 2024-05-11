@@ -84,9 +84,9 @@ jobs:
             if [ $ADMIN_ANY_MODIFIED == "true" ]; then
               echo 'admin-change=true' >> $GITHUB_OUTPUT
               echo "List all the files that have changed: $ADMIN_ANY_MODIFIED_FILES"
+            else
+              echo "Nothing"
             fi
-          else
-            echo "Nothing"
           fi
       - name: Logging github vars
         run: |
