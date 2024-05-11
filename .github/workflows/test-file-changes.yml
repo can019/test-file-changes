@@ -1,8 +1,5 @@
 name: 'Jest'
 on:
-  push:
-    branches:
-      - '**'
   pull_request:
     branches:
       - '**'
@@ -74,24 +71,11 @@ jobs:
         # with:
         #   fetch-depth: 2 # 0 : 모든 히스토리, 1: 마지막 commit, 2: 마지막 2개 commit ...
         # Pr을 연상태에서 push를 하면 merge commit이 마지막 commit, push한 commit아 마지막에서 2번째로 잡힌다.
-      - name: Set flag on
-        run: |
-          echo "falure_on_tj_action=true" >> $GITHUB_OUTPUT
-        
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v44
         with:
           since_last_remote_commit: true
-      
-      - name: Exit test
-        run : |
-          git log --pretty=oneline
-          exit 1
-  
-      - name: Set flag of
-        run: |
-          echo "falure_on_tj_action=false" >> $GITHUB_OUTPUT
 
       - name: List all added files
         env:
@@ -105,7 +89,7 @@ jobs:
   failure-test2:
     runs-on: ubuntu-latest
     needs: [check-file-changes-between-current-branch-commit]
-    if:  ${{ always() && (needs.check-file-changes-between-current-branch-commit.result == 'failure' && needs.check-file-changes-between-current-branch-commit.outputs.falure_on_tj_action == 'true') }}
+    if:  ${{ always() && (needs.check-file-changes-between-current-branch-commit.result == 'failure' )}}
     steps:
       - name : test
         run: |
