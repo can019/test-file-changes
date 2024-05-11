@@ -87,7 +87,7 @@ jobs:
       - name: Exit test
         run : |
           git log --pretty=oneline
-          echo exit 1
+          exit 1
   
       - name: Set flag of
         run: |
